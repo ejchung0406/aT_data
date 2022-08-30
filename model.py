@@ -30,6 +30,7 @@ class Transformer(keras.Model):
         model_path = f'./check/transformer-{df_number}-{epoch}-{batch}.h5'
         if os.path.exists(model_path) == True:
             self.model.load_weights(model_path)
+            print(f"successfully loaded model {model_path}")
 
     def save_model(self, df_number, epoch, batch):
         # 모델 저장

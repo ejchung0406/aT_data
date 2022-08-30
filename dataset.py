@@ -7,16 +7,16 @@ import pandas as pd
 
 class Dataset(object):
     def __init__(self):
-        ## 훈련 데이터 전처리 및 저장 (중간저장 X, 최종저장 O) - train
+        ## 훈련 데이터 전처리 및 저장 (중간저장 X, 최종저장 X) - train
         self.data = preprocessing_data('./aT_train_raw/*.csv')
         self.data.add_pummock()
         self.data.add_dosomae()
         self.data.add_dosomae(option=2)
         self.data.add_imexport()
         self.data.add_weather()
-        self.data.add_categorical('train', data_type="train" ,check=1)
+        self.data.add_categorical('train', data_type="train" ,check=0)
 
-        ## 검증 데이터셋 전처리 및 저장 (중간저장 X, 최종저장 O) - test
+        ## 검증 데이터셋 전처리 및 저장 (중간저장 X, 최종저장 X) - test
         for i in range(1): #원래 10임
             self.data = preprocessing_data(f'./aT_test_raw/sep_{i}/*.csv')
             self.data.add_pummock()
@@ -24,7 +24,7 @@ class Dataset(object):
             self.data.add_dosomae(option=2)
             self.data.add_imexport()
             self.data.add_weather()
-            self.data.add_categorical(f'set_{i}', data_type="test", check=1)
+            self.data.add_categorical(f'set_{i}', data_type="test", check=0)
 
         ## 데이터 불러오기 및 parameter 설정
         self.data_list = glob('./data/train/*.csv')
