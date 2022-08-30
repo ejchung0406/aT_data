@@ -5,7 +5,7 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 import os
 
 class Transformer(keras.Model):
-    def __init__(self, x_train, learning_rate):
+    def __init__(self, x_train, df_number, epoch, batch, learning_rate=0.01):
         super().__init__()
         self.model = build_model(
         x_train.shape[1:],
@@ -22,6 +22,9 @@ class Transformer(keras.Model):
             loss="mean_squared_error",
             optimizer=keras.optimizers.Adam(learning_rate=learning_rate)
         )
+
+        self.loaded = False
+        self.load_model(df_number, epoch, batch)
     
     def load_model(self, df_number, epoch, batch):
         if os.path.exists(f'./model') == False:
@@ -31,6 +34,7 @@ class Transformer(keras.Model):
         if os.path.exists(model_path) == True:
             self.model.load_weights(model_path)
             print(f"successfully loaded model {model_path}")
+            self.loaded = True
 
     def save_model(self, df_number, epoch, batch):
         # 모델 저장

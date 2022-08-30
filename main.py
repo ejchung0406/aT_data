@@ -25,7 +25,7 @@ dataset = Dataset()
 # epoch = 1000
 # batch = 15
 epoch = 3
-batch = 3
+batch = 15
 
 ## Train 과정
 for i in tqdm(dataset.data_list):
@@ -35,18 +35,18 @@ for i in tqdm(dataset.data_list):
     # train, validation 분리 (8 : 2)
     x_train, x_val, y_train, y_val = train_test_split(traindata.xdata, traindata.ydata, test_size=0.2, shuffle=False, random_state=42)
 
-    model = Transformer(x_train, learning_rate=0.01)
-    model.load_model(df_number, epoch, batch)
+    model = Transformer(x_train, df_number, epoch, batch)
     trainer = Trainer(model, astype_data(x_train), y_train, astype_data(x_val), y_val, batch, name=f'transformer-{df_number}')
     
+    if not model.loaded:
     # transformer 모델 훈련 -> 왜 각 농산물마다 다른 모델을 쓸까?
-    # trainer.train(epoch)
-    # model.save_model(df_number, epoch, batch)
+        trainer.train(epoch)
+        model.save_model(df_number, epoch, batch)
 
 ## Test 과정
 zero_csv = [0 for i in range(14)]  # 시점이 비어있는 데이터 0으로 채우기 위한 변수
 
-for i in tqdm(range(1)): #원래 10임
+for i in tqdm(range(10)): #원래 10임
     data_list = glob(f'./data/test/set_{i}/*.csv')
 
     for idx, j in enumerate(data_list):
@@ -126,7 +126,6 @@ for k in tqdm(range(10)):
 """- 변동률 계산 """
 
 date = [f'd+{i}' for i in range(1,15)] + ['d+22 ~ 28 평균']
-
 
 for k in range(10):
     globals()[f'answer_df_{k}'] = pd.DataFrame()

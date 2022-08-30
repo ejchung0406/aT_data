@@ -25,7 +25,6 @@ class preprocessing_data(object):
         self.somae = []
         self.weather = []
 
-
         for i in self.data_list:
             if 'domae' in i:
                 self.domae.append(i)
