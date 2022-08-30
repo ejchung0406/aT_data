@@ -28,7 +28,7 @@ np.random.seed(19970119)
 
 # epoch = 1000
 # batch = 15
-epoch = 3
+epoch = 100
 batch = 15
 
 ## Train 과정
@@ -50,7 +50,7 @@ for i in tqdm(data_list):
 ## Test 과정
 zero_csv = [0 for i in range(14)]  # 시점이 비어있는 데이터 0으로 채우기 위한 변수
 
-for i in tqdm(range(6, 10)): #원래 10임
+for i in tqdm(range(10)): #원래 10임
     data_list = glob(f'./data/test/set_{i}/*.csv')
 
     for idx, j in enumerate(data_list):
