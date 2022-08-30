@@ -18,7 +18,7 @@ class Trainer():
     def train_one_epoch(self):
         epoch = 1
         # Train the model
-        with tf.device('/physical_device:GPU:0'):
+        with tf.device('/device:GPU:0'):
             history1 = self.model.fit(
                 self.x_train, self.y_train,
                 epochs = epoch,

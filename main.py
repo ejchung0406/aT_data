@@ -33,7 +33,7 @@ for i in tqdm(dataset.data_list):
     df_number = traindata.df_number
 
     # train, validation 분리 (8 : 2)
-    x_train, y_train, x_val, y_val = train_test_split(traindata.xdata, traindata.ydata, test_size=0.2, shuffle=False, random_state=42)
+    x_train, x_val, y_train, y_val = train_test_split(traindata.xdata, traindata.ydata, test_size=0.2, shuffle=False, random_state=42)
 
     model = Transformer(x_train, learning_rate=0.01)
     model.load_model(df_number, epoch, batch)
@@ -42,6 +42,8 @@ for i in tqdm(dataset.data_list):
     # transformer 모델 훈련 -> 왜 각 농산물마다 다른 모델을 쓸까?
     for _ in range(epoch):
         trainer.train_one_epoch()
+    
+    model.save_model(df_number, epoch, batch)
 
 # ## Test 과정
 # zero_csv = [0 for i in range(14)]  # 시점이 비어있는 데이터 0으로 채우기 위한 변수
