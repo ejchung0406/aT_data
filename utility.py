@@ -1,6 +1,7 @@
+from tqdm import tqdm
+
 import numpy as np
 import tensorflow as tf
-import tqdm
 
 ## 입력 shape 및 형태 정의 함수
 def make_Tensor(array):

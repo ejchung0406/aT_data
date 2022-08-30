@@ -1,14 +1,17 @@
 import warnings
-import os, random, glob, tqdm
+import os, random
 import tensorflow as tf
 import numpy as np
 import pandas as pd
 
+from dataset import Dataset, TrainDataset
 from sklearn.model_selection import train_test_split
 
-from preprocessing import preprocessing_data
-from utility import astype_data, time_window
-from trainer import train
+from trainer import Trainer
+from utility import astype_data
+from model import Transformer
+from tqdm import tqdm
+from glob import glob
 
 # 경고 끄기
 warnings.filterwarnings(action='ignore')
@@ -18,77 +21,27 @@ tf.random.set_seed(19970119)
 random.seed(19970119)
 np.random.seed(19970119)
 
-## 훈련 데이터 전처리 및 저장 (중간저장 X, 최종저장 X) - train
-data = preprocessing_data('./aT_train_raw/*.csv')
-data.add_pummock()
-data.add_dosomae()
-data.add_dosomae(option=2)
-data.add_imexport()
-data.add_weather()
-data.add_categorical('train', data_type="train" ,check=0)
-
-## 검증 데이터셋 전처리 및 저장 (중간저장 X, 최종저장 X) - test
-for i in range(10):
-    data = preprocessing_data(f'./aT_test_raw/sep_{i}/*.csv')
-    data.add_pummock()
-    data.add_dosomae()
-    data.add_dosomae(option=2)
-    data.add_imexport()
-    data.add_weather()
-    data.add_categorical(f'set_{i}', data_type="test", check=0)
-
-## 데이터 불러오기 및 parameter 설정
-data_list = glob('./data/train/*.csv')
-epoch = 1000
-batch = 15
-tr_del_list = ['단가(원)', '거래량', '거래대금(원)', '경매건수', '도매시장코드', '도매법인코드', '산지코드 '] # train 에서 사용하지 않는 열
-ts_del_list = ['단가(원)', '거래량', '거래대금(원)', '경매건수', '도매시장코드', '도매법인코드', '산지코드 ', '해당일자_전체평균가격(원)'] # test 에서 사용하지 않는 열
-check_col = ['일자구분_중순', '일자구분_초순', '일자구분_하순','월구분_10월', '월구분_11월', '월구분_12월', '월구분_1월', '월구분_2월', '월구분_3월', 
-             '월구분_4월','월구분_5월', '월구분_6월', '월구분_7월', '월구분_8월', '월구분_9월'] # 열 개수 맞추기
+dataset = Dataset()
+# epoch = 1000
+# batch = 15
+epoch = 3
+batch = 3
 
 ## Train 과정
-for i in tqdm(data_list):
-    df_number = i.split("_")[-1].split(".")[0] #농산물 번호 (0~36 중 하나)
-    df = pd.read_csv(i)
-
-    for j in df.columns:
-        df[j] = df[j].replace({' ': np.nan})
-
-    # 사용할 열 선택 및 index 설정
-    df.drop(tr_del_list, axis=1, inplace=True)
-    df.set_index('datadate', drop=True, inplace=True)
-
-    # nan 처리
-    df = df.fillna(0)
-
-    # 변수와 타겟 분리
-    x = df[[i for i in df.columns if i != '해당일자_전체평균가격(원)']]
-    y = df['해당일자_전체평균가격(원)']
-
-    # 2주 입력을 통한 이후 4주 예측을 위해 y의 첫 14일을 제외
-    y = y[14:]
-
-    # time series window 생성
-    data_x = time_window(x, 13, 1)
-    data_y = time_window(y, 27, 1)
-
-    # y의 길이와 같은 길이로 설정
-    xdata = data_x[:len(data_y)]
-    ydata = data_y
+for i in tqdm(dataset.data_list):
+    traindata = TrainDataset(dataset, i)
+    df_number = traindata.df_number
 
     # train, validation 분리 (8 : 2)
-    x_train, x_val, y_train, y_val = train_test_split(xdata, ydata, test_size=0.2, shuffle=False, random_state=119)
+    x_train, y_train, x_val, y_val = train_test_split(traindata.xdata, traindata.ydata, test_size=0.2, shuffle=False, random_state=42)
 
-    # transformer 모델 훈련
-    transformer = train(astype_data(x_train), y_train, astype_data(x_val), y_val, f'transformer-{df_number}', epoch,
-                        batch)
-    transformer.load_weights(f'./check/transformer-{df_number}-{epoch}-{batch}.h5')
-
-    if os.path.exists(f'./model') == False:
-        os.mkdir(f'./model')
-
-    # 모델 저장
-    transformer.save(f'./model/transformer-{df_number}-{epoch}-{batch}.h5')
+    model = Transformer(x_train, learning_rate=0.01)
+    model.load_model(df_number, epoch, batch)
+    trainer = Trainer(model, astype_data(x_train), y_train, astype_data(x_val), y_val, batch, name=f'transformer-{df_number}')
+    
+    # transformer 모델 훈련 -> 왜 각 농산물마다 다른 모델을 쓸까?
+    for _ in range(epoch):
+        trainer.train_one_epoch()
 
 # ## Test 과정
 # zero_csv = [0 for i in range(14)]  # 시점이 비어있는 데이터 0으로 채우기 위한 변수
@@ -96,7 +49,7 @@ for i in tqdm(data_list):
 # for i in tqdm(range(10)):
 #     data_list = glob(f'./data/test/set_{i}/*.csv')
 
-#     for idx,j in enumerate(data_list):
+#     for idx, j in enumerate(data_list):
 #         df = pd.read_csv(j)
 
 #         if len(df) == 0:
@@ -104,15 +57,14 @@ for i in tqdm(data_list):
 #             df = df.fillna(0)
 #             df.drop('zero_non', axis=1, inplace=True)
 
-
 #         file_number = j.split('test_')[1].split('.')[0]
 
 #         # 사용할 열 선택, index 설정
-#         df.drop(ts_del_list, axis=1, inplace=True)
+#         df.drop(dataset.ts_del_list, axis=1, inplace=True)
 #         df.set_index('datadate', drop=True, inplace=True)
 
 #         # train input 과 형상 맞추기
-#         add_col = [i for i in check_col if i not in df.columns]
+#         add_col = [i for i in dataset.check_col if i not in df.columns]
 
 #         for a in add_col:
 #             df[a] = 0
@@ -127,7 +79,6 @@ for i in tqdm(data_list):
 #         # x_test  생성
 #         df_test = astype_data(df.values.reshape(1, df.values.shape[0], df.values.shape[1]))
 
-
 #         # model test
 #         if os.path.exists('./model_output') == False:
 #             os.mkdir('./model_output')
@@ -137,8 +88,7 @@ for i in tqdm(data_list):
 
 #         # 해당하는 모델 불러오기
 #         model_test = tf.keras.models.load_model(f'./model/transformer-{file_number}-{epoch}-{batch}.h5')
-#         pred = transformer.predict(df_test)
-
+#         pred = model.model.predict(df_test)
 
 #         # 결과 저장
 #         save_df = pd.DataFrame(pred).T
@@ -146,33 +96,32 @@ for i in tqdm(data_list):
 
 # ## 정답 제출 파일생성
 # for k in tqdm(range(10)):
+#     globals()[f'set_df_{k}'] = pd.DataFrame()
+#     answer_df_list = glob(f'./model_output/set_{k}/*.csv') # 예측한 결과 불러오기
+#     pum_list = glob(f'./aT_test_raw/sep_{k}/*.csv') # 기존 test input 불러오기
+#     pummok = [a for a in pum_list if 'pummok' in a.split('/')[-1]]
 
-#   globals()[f'set_df_{k}'] = pd.DataFrame()
-#   answer_df_list = glob(f'./model_output/set_{k}/*.csv') # 예측한 결과 불러오기
-#   pum_list = glob(f'./aT_test_raw/sep_{k}/*.csv') # 기존 test input 불러오기
-#   pummok = [a for a in pum_list if 'pummok' in a.split('/')[-1]]
+#     for i in answer_df_list:
+#         df = pd.read_csv(i)
+#         number = i.split('_')[-1].split('.')[0]
 
-#   for i in answer_df_list:
-#     df = pd.read_csv(i)
-#     number = i.split('_')[-1].split('.')[0]
+#         base_number = 0
+#         for p in pummok:
+#             if number == p.split('_')[-1].split('.')[0]:
+#                 pum_df = pd.read_csv(p)
 
-#     base_number = 0
-#     for p in pummok:
-#       if number == p.split('_')[-1].split('.')[0]:
-#         pum_df = pd.read_csv(p)
+#                 if len(pum_df) != 0:
+#                     base_number = pum_df.iloc[len(pum_df)-1]['해당일자_전체평균가격(원)']  # 기존 각 sep 마다 test input의 마지막 target 값 가져오기 (변동률 계산을 위해)
+#                 else:
+#                     base_number = np.nan
 
-#         if len(pum_df) != 0:
-#            base_number = pum_df.iloc[len(pum_df)-1]['해당일자_전체평균가격(원)']  # 기존 각 sep 마다 test input의 마지막 target 값 가져오기 (변동률 계산을 위해)
-#         else:
-#           base_number = np.nan
+#         globals()[f'set_df_{k}'][f'품목{number}']  = [base_number] + list(df[df.columns[-1]].values) # 각 품목당 순서를 t, t+1 ... t+28 로 변경
 
-#     globals()[f'set_df_{k}'][f'품목{number}']  = [base_number] + list(df[df.columns[-1]].values) # 각 품목당 순서를 t, t+1 ... t+28 로 변경
-
-#   globals()[f'set_df_{k}'] = globals()[f'set_df_{k}'][[f'품목{col}' for col in range(37)]] # 열 순서를 품목0 ~ 품목36 으로 변경
+#     globals()[f'set_df_{k}'] = globals()[f'set_df_{k}'][[f'품목{col}' for col in range(len(dataset.data_list))]] # 열 순서를 품목0 ~ 품목36 으로 변경
 
 # """- 변동률 계산을 위한 t, t+1 ... t+28 설정"""
 
-# # set_df_0
+# print(globals()['set_df_0'])
 
 # """- 변동률 계산 """
 
@@ -180,22 +129,21 @@ for i in tqdm(data_list):
 
 
 # for k in range(10):
-#   globals()[f'answer_df_{k}'] = pd.DataFrame()
-#   for c in globals()[f'set_df_{k}'].columns:
-#     base_d = globals()[f'set_df_{k}'][c][0] # 변동률 기준 t 값
+#     globals()[f'answer_df_{k}'] = pd.DataFrame()
+#     for c in globals()[f'set_df_{k}'].columns:
+#         base_d = globals()[f'set_df_{k}'][c][0] # 변동률 기준 t 값
 
-#     ans_1_14 = []
-#     for i in range(14):
-#       ans_1_14.append((globals()[f'set_df_{k}'][c].iloc[i+1]- base_d)/base_d)  # t+1 ~ t+14 까지는 (t+n - t)/t 로 계산
+#         ans_1_14 = []
+#         for i in range(14):
+#             ans_1_14.append((globals()[f'set_df_{k}'][c].iloc[i+1]- base_d)/base_d)  # t+1 ~ t+14 까지는 (t+n - t)/t 로 계산
 
-#     ans_22_28 = (globals()[f'set_df_{k}'][c][22:29].mean() - base_d)/base_d # t+22 ~ t+28은 np.mean(t+22 ~ t+28) - t / t
+#         ans_22_28 = (globals()[f'set_df_{k}'][c][22:29].mean() - base_d)/base_d # t+22 ~ t+28은 np.mean(t+22 ~ t+28) - t / t
 
-#     globals()[f'answer_df_{k}'][f'{c} 변동률'] = ans_1_14 + [ans_22_28]
-  
-#   globals()[f'answer_df_{k}']['Set'] = k # set 번호 설정
-#   globals()[f'answer_df_{k}']['일자'] = date # 일자 설정
+#         globals()[f'answer_df_{k}'][f'{c} 변동률'] = ans_1_14 + [ans_22_28]
+    
+#     globals()[f'answer_df_{k}']['Set'] = k # set 번호 설정
+#     globals()[f'answer_df_{k}']['일자'] = date # 일자 설정
 
-# """- sep 0  ~ sep 9 까지 합치기"""
 
 # # 위에서 계산된 변동률 들을 합쳐주는 과정
 
@@ -233,12 +181,12 @@ for i in tqdm(data_list):
 
 # """- 계산된 변동률 결과물"""
 
-# all_df
+# print(all_df)
 
 # """- 제출 양식"""
 
-# out_ans
+# print(out_ans)
 
 # """- 제출 양식 반영한 최종 결과물 (**실 제출용**)"""
 
-# submit_df
+# print(submit_df)

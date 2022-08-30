@@ -4,6 +4,36 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 import os
 
+class Transformer(keras.Model):
+    def __init__(self, x_train, learning_rate):
+        super().__init__()
+        self.model = build_model(
+        x_train.shape[1:],
+        head_size=256,
+        num_heads=4,
+        ff_dim=4,
+        num_transformer_blocks=4,
+        mlp_units=[128],
+        mlp_dropout=0.4,
+        dropout=0.25,
+        )
+
+        self.model.compile(
+            loss="mean_squared_error",
+            optimizer=keras.optimizers.Adam(learning_rate=learning_rate)
+        )
+    
+    def load_model(self, df_number, epoch, batch):
+        if os.path.exists(f'./model') == False:
+            os.mkdir(f'./model')
+            print("No model to load")
+        else:
+            self.model.load_weights(f'./check/transformer-{df_number}-{epoch}-{batch}.h5')
+
+    def save_model(self, df_number, epoch, batch):
+        # 모델 저장
+        self.model.save(f'./model/transformer-{df_number}-{epoch}-{batch}.h5')
+
 ## Transformer 정의
 def transformer_encoder(inputs, head_size, num_heads, ff_dim, dropout=0):
 
