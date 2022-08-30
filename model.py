@@ -38,7 +38,7 @@ class Transformer(keras.Model):
 
     def save_model(self, df_number, epoch, batch):
         # 모델 저장
-        self.model.save(f'./model/transformer-{df_number}-{epoch}-{batch}.h5')
+        self.model.save(f'./check/transformer-{df_number}-{epoch}-{batch}.h5')
 
 ## Transformer 정의
 def transformer_encoder(inputs, head_size, num_heads, ff_dim, dropout=0):
