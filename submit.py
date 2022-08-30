@@ -90,14 +90,3 @@ submit_df['일자'] = re_date
 # 최종 저장
 submit_df.to_csv('./submit.csv',index=False)
 
-"""- 계산된 변동률 결과물"""
-
-# print(all_df)
-
-"""- 제출 양식"""
-
-# print(out_ans)
-
-"""- 제출 양식 반영한 최종 결과물 (**실 제출용**)"""
-
-# print(submit_df)
