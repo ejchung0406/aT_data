@@ -40,8 +40,7 @@ for i in tqdm(dataset.data_list):
     trainer = Trainer(model, astype_data(x_train), y_train, astype_data(x_val), y_val, batch, name=f'transformer-{df_number}')
     
     # transformer 모델 훈련 -> 왜 각 농산물마다 다른 모델을 쓸까?
-    for _ in range(epoch):
-        trainer.train_one_epoch()
+    trainer.train(epoch)
     
     model.save_model(df_number, epoch, batch)
 

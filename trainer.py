@@ -15,8 +15,7 @@ class Trainer():
         self.name = name
         self.verbose = verbose
 
-    def train_one_epoch(self):
-        epoch = 1
+    def train(self, epoch):
         # Train the model
         with tf.device('/device:GPU:0'):
             history1 = self.model.fit(
