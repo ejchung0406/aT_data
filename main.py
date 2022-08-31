@@ -34,7 +34,6 @@ batch = 256
 # General model 만들고
 xdatas = []
 ydatas = []
-print(np.shape(xdatas))
 
 for i in tqdm(data_list):
     traindata = TrainDataset(tr_del_list, i)
