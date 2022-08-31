@@ -27,18 +27,22 @@ class Transformer(keras.Model):
         self.load_model(df_number, epoch, batch)
     
     def load_model(self, df_number, epoch, batch):
-        if os.path.exists(f'./model') == False:
-            os.mkdir(f'./model')
+        if os.path.exists(f'./model/{epoch}') == False:
+            os.mkdir(f'./model/{epoch}')
             
-        model_path = f'./check/transformer-{df_number}-{epoch}-{batch}.h5'
+        model_path = f'./model/{epoch}/transformer-{df_number}-{epoch}-{batch}.h5'
+        general_model_path = f'./model/{epoch}/transformer-general-{epoch}-{batch}.h5'
         if os.path.exists(model_path) == True:
             self.model.load_weights(model_path)
             print(f"successfully loaded model {model_path}")
             self.loaded = True
+        elif os.path.exists(general_model_path) == True:
+            self.model.load_weights(general_model_path)
+            print(f"successfully loaded general model {model_path}")
 
     def save_model(self, df_number, epoch, batch):
         # 모델 저장
-        self.model.save(f'./check/transformer-{df_number}-{epoch}-{batch}.h5')
+        self.model.save(f'./model/{epoch}/transformer-{df_number}-{epoch}-{batch}.h5')
 
 ## Transformer 정의
 def transformer_encoder(inputs, head_size, num_heads, ff_dim, dropout=0):

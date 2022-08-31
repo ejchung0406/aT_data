@@ -27,11 +27,40 @@ np.random.seed(19970119)
 
 # epoch = 1000
 # batch = 15
-epoch = 100
+epoch = 10
 batch = 256
 
-## Train 과정
+
+# ## Train 과정
+# # General model 만들고
+# xdatas = []
+# ydatas = []
+# print(np.shape(xdatas))
+
+# for i in tqdm(data_list):
+#     traindata = TrainDataset(tr_del_list, i)
+#     if len(xdatas) == 0:
+#         xdatas = traindata.xdata
+#         ydatas = traindata.ydata
+#     else:
+#         xdatas = np.concatenate((xdatas, traindata.xdata), axis=0)
+#         ydatas = np.concatenate((ydatas, traindata.ydata), axis=0)
+
+# # train, validation 분리 (8 : 2)
+# x_train, x_val, y_train, y_val = train_test_split(xdatas, ydatas, test_size=0.2, shuffle=True, random_state=42)
+
+# model = Transformer(x_train, 'general', epoch, batch)
+# trainer = Trainer(model, astype_data(x_train), astype_data(y_train), astype_data(x_val), astype_data(y_val),
+#                     batch, name=f'transformer-general')
+
+# if not model.loaded:
+# # transformer 모델 훈련 -> 왜 각 농산물마다 다른 모델을 쓸까?
+#     trainer.train(epoch)
+# model.save_model('general', epoch, batch)
+
+# Finetuning
 for i in tqdm(data_list):
+    print(i)
     traindata = TrainDataset(tr_del_list, i)
     df_number = traindata.df_number
 
@@ -45,7 +74,7 @@ for i in tqdm(data_list):
     if not model.loaded:
     # transformer 모델 훈련 -> 왜 각 농산물마다 다른 모델을 쓸까?
         trainer.train(epoch)
-        model.save_model(df_number, epoch, batch)
+    model.save_model(df_number, epoch, batch)
 
 ## Test 과정
 zero_csv = [0 for i in range(14)]  # 시점이 비어있는 데이터 0으로 채우기 위한 변수
@@ -81,7 +110,7 @@ for i in tqdm(range(10)): #원래 10임
         df = df.fillna(0)
 
         # x_test  생성
-        df_test = astype_data(df.values.reshape(1, df.values.shape[0], df.values.shape[1]))
+        df_test = astype_data(df.values.reshape(1, df.values.shape[0], df.values.shape[1]), normalize=True)
 
         # model test
         if os.path.exists('./model_output') == False:
@@ -91,8 +120,8 @@ for i in tqdm(range(10)): #원래 10임
             os.mkdir(f'./model_output/set_{i}')
 
         # 해당하는 모델 불러오기
-        model_test = tf.keras.models.load_model(f'./check/transformer-{file_number}-{epoch}-{batch}.h5')
-        pred = model.model.predict(df_test)
+        model_test = tf.keras.models.load_model(f'./model/{epoch}/transformer-{file_number}-{epoch}-{batch}.h5')
+        pred = model_test.predict(df_test)
 
         # 결과 저장
         save_df = pd.DataFrame(pred).T

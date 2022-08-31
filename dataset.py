@@ -1,9 +1,10 @@
 from preprocessing import preprocessing_data
-from utility import time_window
+from utility import time_window, normalize_xy
 from glob import glob
 
 import numpy as np
 import pandas as pd
+
 
 class Dataset(object):
     def __init__(self):
@@ -43,7 +44,8 @@ class TrainDataset():
         df = df.fillna(0)
 
         # 변수와 타겟 분리
-        x = df[[i for i in df.columns if i != '해당일자_전체평균가격(원)']]
+        # x = df[[i for i in df.columns if i != '해당일자_전체평균가격(원)']]
+        x = df[[i for i in df.columns]]
         y = df['해당일자_전체평균가격(원)']
 
         # 2주 입력을 통한 이후 4주 예측을 위해 y의 첫 14일을 제외
@@ -56,3 +58,11 @@ class TrainDataset():
         # y의 길이와 같은 길이로 설정
         self.xdata = data_x[:len(data_y)]
         self.ydata = data_y
+
+        mean = self.ydata[np.nonzero(self.ydata)].mean()
+        self.ydata[self.ydata == 0] = mean 
+
+        idx = df.columns.get_loc('해당일자_전체평균가격(원)')
+
+        self.xdata, self.ydata = normalize_xy(xdata=self.xdata, ydata=self.ydata, idx=idx)
+

@@ -42,13 +42,15 @@ date = [f'd+{i}' for i in range(1,15)] + ['d+22 ~ 28 평균']
 for k in range(10):
     globals()[f'answer_df_{k}'] = pd.DataFrame()
     for c in globals()[f'set_df_{k}'].columns:
-        base_d = globals()[f'set_df_{k}'][c][0] # 변동률 기준 t 값
+        # base_d = globals()[f'set_df_{k}'][c][0] # 변동률 기준 t 값
 
         ans_1_14 = []
         for i in range(14):
-            ans_1_14.append((globals()[f'set_df_{k}'][c].iloc[i+1]- base_d)/base_d)  # t+1 ~ t+14 까지는 (t+n - t)/t 로 계산
+            # ans_1_14.append((globals()[f'set_df_{k}'][c].iloc[i+1]- base_d)/base_d)  # t+1 ~ t+14 까지는 (t+n - t)/t 로 계산
+            ans_1_14.append((globals()[f'set_df_{k}'][c].iloc[i+1])
 
-        ans_22_28 = (globals()[f'set_df_{k}'][c][22:29].mean() - base_d)/base_d # t+22 ~ t+28은 np.mean(t+22 ~ t+28) - t / t
+        # ans_22_28 = (globals()[f'set_df_{k}'][c][22:29].mean() - base_d)/base_d # t+22 ~ t+28은 np.mean(t+22 ~ t+28) - t / t
+        ans_22_28 = (globals()[f'set_df_{k}'][c][22:29].mean()
 
         globals()[f'answer_df_{k}'][f'{c} 변동률'] = ans_1_14 + [ans_22_28]
     

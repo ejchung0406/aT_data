@@ -21,10 +21,10 @@ class Trainer():
             history1 = self.model.fit(
                 self.x_train, self.y_train,
                 epochs = epoch,
-                steps_per_epoch=len(self.x_train) / self.batch_size,
+                # steps_per_epoch=len(self.x_train) / self.batch_size,
                 batch_size=self.batch_size,
                 validation_data=(self.x_val, self.y_val),
-                validation_steps=len(self.x_val) / self.batch_size,
-                shuffle=False,
+                # validation_steps=len(self.x_val) / self.batch_size,
+                shuffle=True,
                 callbacks=call_back_set(self.name, epoch, self.batch_size),
                 verbose=self.verbose)
