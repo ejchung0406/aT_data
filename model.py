@@ -28,7 +28,7 @@ class Transformer(keras.Model):
     
     def load_model(self, df_number, epoch, batch):
         if os.path.exists(f'./model/{epoch}') == False:
-            os.mkdir(f'./model/{epoch}')
+            os.makedirs(f'./model/{epoch}')
             
         model_path = f'./model/{epoch}/transformer-{df_number}-{epoch}-{batch}.h5'
         general_model_path = f'./model/{epoch}/transformer-general-{epoch}-{batch}.h5'
@@ -78,7 +78,7 @@ def call_back_set(name, epoch, batch_size):
     early_stopping = EarlyStopping(monitor='val_loss', patience=100)
 
     if os.path.exists(f'./check') == False:
-        os.mkdir(f'./check')
+        os.makedirs(f'./check')
 
     filename = f'./check/{name}-{epoch}-{batch_size}.h5'
 
