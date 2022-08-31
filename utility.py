@@ -22,7 +22,7 @@ def time_window(df, t, t_sep):
     for index in tqdm(range(len(df) - seqence_length)):
         result.append(df[index: index + seqence_length].values)
 
-    return np.array(result, dtype=np.float32)\
+    return np.array(result, dtype=np.float32)
         
 def normalize_xy(xdata, ydata=[], idx=0):
     for i in range(len(xdata)):
