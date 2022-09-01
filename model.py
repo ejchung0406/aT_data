@@ -2,6 +2,7 @@ from tensorflow import keras
 from keras import layers
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
+from lists import without_imexport
 import os
 
 class Transformer(keras.Model):
@@ -32,13 +33,17 @@ class Transformer(keras.Model):
             
         model_path = f'./model/{epoch}/transformer-{df_number}-{epoch}-{batch}.h5'
         general_model_path = f'./model/{epoch}/transformer-general-{epoch}-{batch}.h5'
+        general_without_model_path = f'./model/{epoch}/transformer-general-without-{epoch}-{batch}.h5'
         if os.path.exists(model_path) == True:
             self.model.load_weights(model_path)
             print(f"successfully loaded model {model_path}")
             self.loaded = True
-        elif os.path.exists(general_model_path) == True:
+        elif df_number not in without_imexport and os.path.exists(general_model_path) == True:
             self.model.load_weights(general_model_path)
             print(f"successfully loaded general model {model_path}")
+        elif df_number in without_imexport and os.path.exists(general_without_model_path) == True:
+            self.model.load_weights(general_without_model_path)
+            print(f"successfully loaded general model without imexport {model_path}")
 
     def save_model(self, df_number, epoch, batch):
         # 모델 저장
