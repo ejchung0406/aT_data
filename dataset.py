@@ -64,5 +64,7 @@ class TrainDataset():
 
         idx = df.columns.get_loc('해당일자_전체평균가격(원)')
 
+        print(self.df_number)
+
         self.xdata, self.ydata = normalize_xy(xdata=self.xdata, ydata=self.ydata, idx=idx)
 

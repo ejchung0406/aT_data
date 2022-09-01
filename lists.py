@@ -1,15 +1,17 @@
 from glob import glob
+import utility
 
 ## 데이터 불러오기 및 parameter 설정
 
 def fetch_data_list(path='./data/train/*.csv'):
-    data_list_original = sorted(glob(path))
+    data_list_original = glob(path)
+    data_list_original.sort(key=utility.natural_keys)
     data_list = []
     data_list_without_imexport = []
     
 
     for i in range(len(data_list_original)):
-        if i in without_imexport:
+        if i not in without_imexport:
             data_list.append(data_list_original[i])
         else:
             data_list_without_imexport.append(data_list_original[i])
