@@ -18,7 +18,8 @@ def fetch_data_list(path='./data/train/*.csv'):
 
     return data_list, data_list_without_imexport
 
-without_imexport = [7, 8, 14, 16, 23, 24, 26, 27, 31]
+# without_imexport = [7, 8, 14, 16, 23, 24, 26, 27, 31]
+without_imexport = [7, 16]
 data_list, data_list_without_imexport = fetch_data_list()
 tr_del_list = ['단가(원)', '거래량', '거래대금(원)', '경매건수', '도매시장코드', '도매법인코드', '산지코드 '] # train 에서 사용하지 않는 열
 ts_del_list = ['단가(원)', '거래량', '거래대금(원)', '경매건수', '도매시장코드', '도매법인코드', '산지코드 '] # test 에서 사용하지 않는 열

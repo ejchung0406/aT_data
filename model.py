@@ -34,16 +34,21 @@ class Transformer(keras.Model):
         model_path = f'./model/{epoch}/transformer-{df_number}-{epoch}-{batch}.h5'
         general_model_path = f'./model/{epoch}/transformer-general-{epoch}-{batch}.h5'
         general_without_model_path = f'./model/{epoch}/transformer-general-without-{epoch}-{batch}.h5'
+
         if os.path.exists(model_path) == True:
             self.model.load_weights(model_path)
             print(f"successfully loaded model {model_path}")
             self.loaded = True
-        elif df_number not in without_imexport and os.path.exists(general_model_path) == True:
-            self.model.load_weights(general_model_path)
-            print(f"successfully loaded general model {model_path}")
-        elif df_number in without_imexport and os.path.exists(general_without_model_path) == True:
-            self.model.load_weights(general_without_model_path)
-            print(f"successfully loaded general model without imexport {model_path}")
+        elif 'general' in df_number:
+            return
+        elif int(df_number) not in without_imexport:
+            if os.path.exists(general_model_path) == True:
+                self.model.load_weights(general_model_path)
+                print(f"successfully loaded general model {general_model_path}")
+        elif int(df_number) in without_imexport:
+            if os.path.exists(general_without_model_path) == True:
+                self.model.load_weights(general_without_model_path)
+                print(f"successfully loaded general model without imexport {general_without_model_path}")
 
     def save_model(self, df_number, epoch, batch):
         # 모델 저장
