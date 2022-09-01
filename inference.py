@@ -18,7 +18,7 @@ tf.random.set_seed(19970119)
 random.seed(19970119)
 np.random.seed(19970119)
 
-epoch = 10
+epoch = 1000
 batch = 256
 
 ## Test 과정
@@ -26,7 +26,7 @@ zero_csv = [0 for i in range(14)]  # 시점이 비어있는 데이터 0으로 �
 
 for i in tqdm(range(10)): #원래 10임
     data_list = glob(f'./data/test/set_{i}/*.csv')
-
+    
     for idx, j in enumerate(data_list):
         df = pd.read_csv(j)
 
@@ -36,6 +36,12 @@ for i in tqdm(range(10)): #원래 10임
             df.drop('zero_non', axis=1, inplace=True)
 
         file_number = j.split('test_')[1].split('.')[0]
+
+        if i == 9 and file_number == '7':
+            pred = tf.zeros(shape = (1, 28), dtype=tf.int32)
+            save_df = pd.DataFrame(pred).T
+            save_df.to_csv(f'./model_output/set_{i}/predict_{file_number}.csv', index=False)
+            continue
 
         # 사용할 열 선택, index 설정
         df.drop(ts_del_list, axis=1, inplace=True)

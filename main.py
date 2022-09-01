@@ -26,7 +26,7 @@ np.random.seed(19970119)
 
 # epoch = 1000
 # batch = 15
-epoch = 10
+epoch = 1000
 batch = 256
 
 
@@ -46,6 +46,9 @@ for i in tqdm(data_list):
 
 # train, validation 분리 (8 : 2)
 x_train, x_val, y_train, y_val = train_test_split(xdatas, ydatas, test_size=0.2, shuffle=True, random_state=42)
+
+del xdatas
+del ydatas
 
 model = Transformer(x_train, 'general', epoch, batch)
 trainer = Trainer(model, astype_data(x_train), astype_data(y_train), astype_data(x_val), astype_data(y_val),

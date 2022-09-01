@@ -25,6 +25,7 @@ def time_window(df, t, t_sep):
     return np.array(result, dtype=np.float32)
         
 def normalize_xy(xdata, ydata=[], idx=0):
+    idx_to_remove = []
     for i in range(len(xdata)):
         for j in range(np.shape(xdata[i])[1]):
             p = xdata[i, :, j]
@@ -33,5 +34,17 @@ def normalize_xy(xdata, ydata=[], idx=0):
                 xdata[i, :, j] = (xdata[i, :, j] - last)/last
                 if j == idx and len(ydata)!=0:
                     ydata[i] = (ydata[i] - last)/last
+            else:
+                if j == idx:
+                    idx_to_remove.append(i)
+
+        if len(ydata)!=0 and len(ydata[ydata>0])==0:
+            print("asdfasdfadsfasdfasdfasdf")
+ 
+    for i in sorted(idx_to_remove, reverse=True):
+        np.delete(xdata, i, axis=0)
+        if len(ydata)!=0:
+            np.delete(ydata, i, axis=0)
+        print(f"deleted {i}")
 
     return xdata, ydata
