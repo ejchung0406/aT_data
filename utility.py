@@ -43,9 +43,9 @@ def normalize_xy(xdata, ydata=[], idx=0):
             print("asdfasdfadsfasdfasdfasdf")
  
     for i in sorted(idx_to_remove, reverse=True):
-        np.delete(xdata, i, axis=0)
+        xdata = np.delete(xdata, i, axis=0)
         if len(ydata)!=0:
-            np.delete(ydata, i, axis=0)
+            ydata = np.delete(ydata, i, axis=0)
         print(f"deleted {i}")
 
     return xdata, ydata

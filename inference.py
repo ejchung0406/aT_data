@@ -18,7 +18,7 @@ tf.random.set_seed(19970119)
 random.seed(19970119)
 np.random.seed(19970119)
 
-epoch = 1000
+epoch = 10
 batch = 256
 
 ## Test 과정
