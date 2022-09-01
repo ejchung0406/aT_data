@@ -85,7 +85,7 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
 
 ## keras eraly stop, chekpoint 정의
 def call_back_set(name, epoch, batch_size):
-    early_stopping = EarlyStopping(monitor='val_loss', patience=100)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=50)
 
     if os.path.exists(f'./check') == False:
         os.makedirs(f'./check')
