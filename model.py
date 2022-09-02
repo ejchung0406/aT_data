@@ -6,7 +6,7 @@ from lists import without_imexport
 import os
 
 class Transformer(keras.Model):
-    def __init__(self, x_train, df_number, epoch, batch, learning_rate=0.01):
+    def __init__(self, x_train, df_number, epoch, batch, learning_rate=0.001):
         super().__init__()
         self.model = build_model(
         x_train.shape[1:],
@@ -85,7 +85,7 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
 
 ## keras eraly stop, chekpoint 정의
 def call_back_set(name, epoch, batch_size):
-    early_stopping = EarlyStopping(monitor='val_loss', patience=50)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=10)
 
     if os.path.exists(f'./check') == False:
         os.makedirs(f'./check')

@@ -1,5 +1,5 @@
 from preprocessing import preprocessing_data
-from utility import time_window, normalize_xy
+from utility import time_window, normalize_xy, fill_zeros_xy
 from glob import glob
 
 import numpy as np
@@ -15,7 +15,7 @@ class Dataset(object):
         self.data.add_dosomae(option=2)
         self.data.add_imexport()
         self.data.add_weather()
-        self.data.add_categorical('train', data_type="train" ,check=0)
+        self.data.add_categorical('train', data_type="train" ,check=1)
 
         ## 검증 데이터셋 전처리 및 저장 (중간저장 X, 최종저장 X) - test
         for i in range(10): #원래 10임
@@ -25,7 +25,7 @@ class Dataset(object):
             self.data.add_dosomae(option=2)
             self.data.add_imexport()
             self.data.add_weather()
-            self.data.add_categorical(f'set_{i}', data_type="test", check=0)
+            self.data.add_categorical(f'set_{i}', data_type="test", check=1)
 
 
 class TrainDataset():
@@ -59,13 +59,13 @@ class TrainDataset():
         self.xdata = data_x[:len(data_y)]
         self.ydata = data_y
 
-        mean = self.ydata[np.nonzero(self.ydata)].mean()
-        self.ydata[self.ydata == 0] = mean 
+        # 일단은 그냥 평균으로 채워넣게 해놨는데, 그 사잇값 평균? 식으로 해도 될듯.. ?
+        self.xdata, self.ydata = fill_zeros_xy(xdata=self.xdata, ydata=self.ydata)
 
         idx = df.columns.get_loc('해당일자_전체평균가격(원)')
 
         self.xdata, self.ydata = normalize_xy(xdata=self.xdata, ydata=self.ydata, idx=idx)
 
-        # self.xdata = self.xdata[300:300]
-        # self.ydata = self.ydata[300:300]
+        # self.xdata = self.xdata[250:1000]
+        # self.ydata = self.ydata[250:1000]
 

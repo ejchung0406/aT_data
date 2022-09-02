@@ -4,7 +4,7 @@ import pandas as pd
 from tqdm import tqdm
 from glob import glob
 
-from lists import data_list, tr_del_list, ts_del_list, check_col
+from lists import data_list_original, tr_del_list, ts_del_list, check_col
 
 ## 정답 제출 파일생성
 for k in tqdm(range(10)):
@@ -29,7 +29,7 @@ for k in tqdm(range(10)):
 
         globals()[f'set_df_{k}'][f'품목{number}']  = [base_number] + list(df[df.columns[-1]].values) # 각 품목당 순서를 t, t+1 ... t+28 로 변경
 
-    globals()[f'set_df_{k}'] = globals()[f'set_df_{k}'][[f'품목{col}' for col in range(len(data_list))]] # 열 순서를 품목0 ~ 품목36 으로 변경
+    globals()[f'set_df_{k}'] = globals()[f'set_df_{k}'][[f'품목{col}' for col in range(len(data_list_original))]] # 열 순서를 품목0 ~ 품목36 으로 변경
 
 """- 변동률 계산을 위한 t, t+1 ... t+28 설정"""
 
@@ -43,10 +43,12 @@ for k in range(10):
     globals()[f'answer_df_{k}'] = pd.DataFrame()
     for c in globals()[f'set_df_{k}'].columns:
         # base_d = globals()[f'set_df_{k}'][c][0] # 변동률 기준 t 값
+        
 
         ans_1_14 = []
         for i in range(14):
-            # ans_1_14.append((globals()[f'set_df_{k}'][c].iloc[i+1]- base_d)/base_d)  # t+1 ~ t+14 까지는 (t+n - t)/t 로 계산
+            # ans_1_14.append((globals()[f'set_df_{k}'][c].iloc[i+1]- base_d)/base_d)  # t+1 ~ t+14 까지는 (t+n - t)/t 로 계
+
             ans_1_14.append(globals()[f'set_df_{k}'][c].iloc[i+1])
 
         # ans_22_28 = (globals()[f'set_df_{k}'][c][22:29].mean() - base_d)/base_d # t+22 ~ t+28은 np.mean(t+22 ~ t+28) - t / t

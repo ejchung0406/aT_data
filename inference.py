@@ -18,8 +18,8 @@ tf.random.set_seed(19970119)
 random.seed(19970119)
 np.random.seed(19970119)
 
-epoch = 300
-batch = 256
+epoch = 10
+batch = 64
 
 ## Test 과정
 zero_csv = [0 for i in range(14)]  # 시점이 비어있는 데이터 0으로 채우기 위한 변수
@@ -36,6 +36,9 @@ for i in tqdm(range(10)): #원래 10임
             df.drop('zero_non', axis=1, inplace=True)
 
         file_number = j.split('test_')[1].split('.')[0]
+
+        # if file_number != '0':
+        #     continue
 
         if i == 9 and file_number == '7':
             pred = tf.zeros(shape = (1, 28), dtype=tf.int32)

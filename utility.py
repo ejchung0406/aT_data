@@ -1,3 +1,4 @@
+from sqlite3 import threadsafety
 from tqdm import tqdm
 
 import re
@@ -25,28 +26,59 @@ def time_window(df, t, t_sep):
 
     return np.array(result, dtype=np.float32)
         
+def fill_zeros_xy(xdata, ydata):
+    for j in range(len(xdata)):
+        for i in range(np.shape(xdata)[1]-33):#날씨, 월구분, 중순은 뺐음. 
+            col = xdata[j, :, i]
+            mean = col[np.nonzero(col)].mean()
+            if not np.isnan(mean):
+                col[col == 0] = mean 
+                xdata[j, :, i] = col
+                # print("xmean: ", mean)
+
+        col = ydata[j]
+        mean = col[np.nonzero(col)].mean()
+        if not np.isnan(mean):
+            col[col == 0] = mean
+            ydata[j] = col
+            # print("ymean: ", mean) 
+
+    return xdata, ydata
+
 def normalize_xy(xdata, ydata=[], idx=0):
     idx_to_remove = []
+    if len(ydata)!=0: 
+        threshold = 5
+    else:
+        threshold = 2
+
     for i in range(len(xdata)):
-        for j in range(np.shape(xdata[i])[1]):
+        for j in range(np.shape(xdata[i])[1]-33): #날씨, 월구분, 중순은 뺐음. 
             p = xdata[i, :, j]
-            if len(p[p>0]) != 0:
-                last = p[p>0][-1]
-                xdata[i, :, j] = (xdata[i, :, j] - last)/last
-                if j == idx and len(ydata)!=0:
-                    ydata[i] = (ydata[i] - last)/last
-            else:
+            if len(np.unique(p)) < threshold:
+                xdata[i, :, j]=np.zeros_like(xdata[i, :, j])
                 if j == idx:
                     idx_to_remove.append(i)
-
-        if len(ydata)!=0 and len(ydata[ydata>0])==0:
-            print("asdfasdfadsfasdfasdfasdf")
+            else:
+                last = p[p!=0][-1]
+                xdata[i, :, j] = (p - last)/last
+                if j == idx and len(ydata)!=0:
+                    q = ydata[i]
+                    if len(np.unique(q)) < threshold:
+                        idx_to_remove.append(i)
+                        q = np.zeros_like(ydata[i])
+                    else:
+                        ydata[i] = (q - last)/last
  
+
     for i in sorted(idx_to_remove, reverse=True):
-        xdata = np.delete(xdata, i, axis=0)
         if len(ydata)!=0:
+            xdata = np.delete(xdata, i, axis=0)
             ydata = np.delete(ydata, i, axis=0)
-        print(f"deleted {i}")
+        # print(f"deleted {i}")
+
+    # print(xdata[100, :, idx])
+    # print(ydata[100])
 
     return xdata, ydata
 

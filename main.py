@@ -26,8 +26,8 @@ np.random.seed(19970119)
 
 # epoch = 1000
 # batch = 15
-epoch = 300
-batch = 256
+epoch = 10
+batch = 128
 
 
 ## Train 과정
@@ -45,7 +45,7 @@ for i in tqdm(data_list):
         ydatas = np.concatenate((ydatas, traindata.ydata), axis=0)
 
 # train, validation 분리 (8 : 2)
-x_train, x_val, y_train, y_val = train_test_split(xdatas, ydatas, test_size=0.2, shuffle=True, random_state=42)
+x_train, x_val, y_train, y_val = train_test_split(xdatas, ydatas, test_size=0.5, shuffle=True, random_state=42)
 
 del xdatas
 del ydatas
@@ -73,7 +73,7 @@ for i in tqdm(data_list_without_imexport):
         ydatas = np.concatenate((ydatas, traindata.ydata), axis=0)
 
 # train, validation 분리 (8 : 2)
-x_train, x_val, y_train, y_val = train_test_split(xdatas, ydatas, test_size=0.2, shuffle=True, random_state=42)
+x_train, x_val, y_train, y_val = train_test_split(xdatas, ydatas, test_size=0.5, shuffle=True, random_state=42)
 
 del xdatas
 del ydatas
@@ -86,6 +86,8 @@ if not model.loaded:
 # transformer 모델 훈련 -> 왜 각 농산물마다 다른 모델을 쓸까?
     trainer.train(epoch)
 model.save_model('general-without', epoch, batch)
+yy_val = trainer.model.predict(x_val)
+print(x_val[0][0], x_val[1][0], y_val[0], y_val[1], yy_val[0], yy_val[1])
 
 # Finetuning
 for i in tqdm(data_list):
@@ -116,8 +118,9 @@ for i in tqdm(data_list_without_imexport):
     model = Transformer(x_train, df_number, epoch, batch)
     trainer = Trainer(model, astype_data(x_train), astype_data(y_train), astype_data(x_val), astype_data(y_val),
                         batch, name=f'transformer-{df_number}')
-    
+
     if not model.loaded:
     # transformer 모델 훈련 -> 왜 각 농산물마다 다른 모델을 쓸까?
         trainer.train(epoch)
     model.save_model(df_number, epoch, batch)
+    
