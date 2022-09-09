@@ -1,14 +1,20 @@
 from preprocessing import preprocessing_data
+from constrained_linear_regression import ConstrainedLinearRegression
+from utility import chaboon, yeokchaboon
 from scipy.stats import pearsonr   
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+from sklearn import linear_model
+from scipy import ndimage
+
 
 if __name__ == "__main__":
     data = preprocessing_data(dir='../aT_train_raw/pummok_*.csv', 
                               dir_outlier='./outliers')
 
     data.chaboon()
-    data.moving_avg(100)
+    data.moving_avg(30)
     data.chaboon(mvavg=1)
 
     corr = []
@@ -56,9 +62,71 @@ if __name__ == "__main__":
 
     # 11번이 두 분야 모두에서 1등을 차지했네요. 
 
-    print(whatthefuck)
-    print(whatthefuck_diff)
+    print(list(whatthefuck[-10:]))
+    # print(whatthefuck_diff)
 
-    # plt.plot(data.prices_mvavg[17])
-    # plt.plot(data.prices_diff[25])
+    # plt.plot(data.prices[0])
+    # plt.plot(data.prices_mvavg_diff[11])
     # plt.show()
+
+    no_more_random = [9, 26, 0, 25, 34, 8, 16, 6, 18, 11] # whatthefuck_diff 상위 5개. 일단 귀찮아서 하드코딩함. 
+
+    for sep in range(10):
+        for i in no_more_random:
+            price = data.prices_test[sep][i]
+            firstdate = int(data.date_test[sep][i])
+            
+            # startprice, price = chaboon(price)
+
+            splits_mvavg = np.split(data.prices_mvavg[i], [365, 365*2, 365*3, 365*4])
+            splits_mvavg.pop(-1)
+            # 년도별로 노말라이즈를 하고 평균내야 할듯
+            mvavg = np.sum(splits_mvavg, axis=0)/len(splits_mvavg)
+            # 지금은 그냥 마지막해로 함 
+            # mvavg = splits_mvavg[-1]
+
+            # x = data.prices[i][firstdate:firstdate+14]
+            x = mvavg[firstdate:firstdate+14]
+            y = price
+            y = ndimage.median_filter(price, size=3)
+
+            if len(mvavg[firstdate:])<42:
+                rate_future_avg = np.random.normal(0, 0.001, 28)
+                price_future_avg = (1+rate_future_avg)*y[-1]
+                plt.plot(np.arange(firstdate, firstdate+14), y)
+                plt.plot(np.arange(firstdate+14, firstdate+42), price_future_avg)
+                plt.title(f"pummok: {i}, test set: {sep}, random: yes")
+                # plt.show()
+                continue
+
+            else: 
+                coeffi = 0.5
+                # regr = linear_model.LinearRegression()
+                regr = ConstrainedLinearRegression()
+                regr.fit(x.reshape(-1, 1), y.reshape(-1, 1), max_coef=[2], min_coef=[2])
+                price_future = regr.coef_[0]*data.prices[i][firstdate+14:firstdate+42]+regr.intercept_
+                price_future_avg = abs(regr.coef_[0])*mvavg[firstdate+14:firstdate+42]+regr.intercept_
+                price_future_avg = price_future_avg - (price_future_avg[0] - y[-1])*coeffi
+                
+                plt.plot(np.arange(firstdate, firstdate+42), mvavg[firstdate:firstdate+42])
+                plt.plot(np.arange(firstdate, firstdate+14), y)
+                plt.plot(np.arange(firstdate+14, firstdate+42), price_future)
+                plt.plot(np.arange(firstdate+14, firstdate+42), price_future_avg)
+                plt.title(f"pummok: {i}, test set: {sep}, random: no")
+                # plt.show()
+
+                rate_future = (price_future - y[-1])/y[-1]
+                rate_future_avg = (price_future_avg - y[-1])/y[-1]
+
+                # print(rate_future_avg)
+
+            os.makedirs(f"../model_output/set_{sep}", exist_ok = True)
+            with open(f"../model_output/set_{sep}/predict_{i}.csv", "w") as answerfile:
+                np.savetxt(answerfile, rate_future_avg)
+
+        for i in range(37):
+            if i not in no_more_random:
+                random = np.random.normal(0, 0.001, 28)
+                os.makedirs(f"../model_output/set_{sep}", exist_ok = True)
+                with open(f"../model_output/set_{sep}/predict_{i}.csv", "w") as answerfile:
+                    np.savetxt(answerfile, random)

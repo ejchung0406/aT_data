@@ -92,3 +92,17 @@ def natural_keys(text):
 
 def atoi(text):
     return int(text) if text.isdigit() else text
+
+def chaboon(array):
+    array_diff = np.zeros_like(array[:-1])
+    for j in range(len(array)-1):
+        array_diff[j]=(array[j+1]-array[j])/array[j]
+    return array[0], array_diff
+
+def yeokchaboon(array, start_price=1):
+    array_int = np.zeros_like(array)
+    array_int = np.append(array_int, array_int[0])
+    array_int[0] = start_price
+    for j in range(len(array)):
+        array_int[j+1]= array_int[j]*(1+array[j])
+    return array_int
