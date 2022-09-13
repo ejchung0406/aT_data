@@ -102,7 +102,6 @@ if __name__ == "__main__":
                 continue
 
             else: 
-                
                 # regr = linear_model.LinearRegression()
                 regr = ConstrainedLinearRegression()
                 regr.fit(x.reshape(-1, 1), y.reshape(-1, 1), max_coef=[1.2], min_coef=[0.4])
@@ -117,13 +116,14 @@ if __name__ == "__main__":
 
                 price_future_avg = price_future_avg - (price_future_avg[0] - price[-1])*coeffi
                 
-                plt.plot(np.arange(firstdate, firstdate+42), mvavg[firstdate:firstdate+42])
-                plt.plot(np.arange(firstdate, firstdate+14), y)
-                plt.plot(np.arange(firstdate+14, firstdate+42), price_future)
-                plt.plot(np.arange(firstdate+14, firstdate+42), price_future_avg)
-                plt.title(f"pummok: {i}, test set: {sep}, random: no")
-                # if sep==0:
-                #     plt.show()
+                if i==10:
+                    plt.plot(np.arange(firstdate, firstdate+42), mvavg[firstdate:firstdate+42])
+                    plt.plot(np.arange(firstdate, firstdate+14), y)
+                    # plt.plot(np.arange(firstdate+14, firstdate+42), price_future)
+                    plt.plot(np.arange(firstdate+14, firstdate+42), price_future_avg)
+                    plt.title(f"pummok: {i}, test set: {sep}, random: no")
+                    if sep==5:
+                        plt.show()
 
                 rate_future = (price_future - price[-1])/price[-1]
                 rate_future_avg = (price_future_avg - price[-1])/price[-1]
